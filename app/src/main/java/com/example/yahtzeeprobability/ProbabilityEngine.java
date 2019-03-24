@@ -5,20 +5,6 @@ public final class ProbabilityEngine {
     public static double ONE_SIXTH = 1.0 / 6.0;
     public static double FIVE_SIXTH = 5.0 / 6.0;
 
-    //Hypergeometric calculator, returns exact probability that desired outcoume with happen
-    //Examples for yahtzee:
-    //population: number of sides on the die
-    //numSuccesses: number of desireable results on die
-    //sampleSize: number of dice being rolled
-    //numSuccessesSample: number of successes we want
-    public static double Calculate(int population, int numSuccesses, int sampleSize, int numSuccessesSample) {
-        // (success choose sampleSuccess) * (pop - success choose sample - sampleSuccess)/ (pop choose sample)
-
-        return Choose(numSuccesses, numSuccessesSample) *
-                Choose(population - numSuccesses, sampleSize - numSuccessesSample) /
-                Choose(population, sampleSize);
-    }
-
     // choose formula: n choose k = n! / (n-k)!k!
     public static double Choose(int n, int k) {
         return Factorial(n) / (Factorial(n - k) * Factorial(k));
@@ -58,16 +44,22 @@ public final class ProbabilityEngine {
         NumberRolls(rolledNumbers, 4);
         NumberRolls(rolledNumbers, 5);
 
-        int temp = 0;
+        int mostRolled = 1;
+        int secondMostRolled = 1;
 
         for (int i = 0; i < rolledNumbers.length; i++) {
-            if (rolledNumbers[i] > temp) {
-                temp = rolledNumbers[i];
+            if (rolledNumbers[i] > mostRolled) {
+                secondMostRolled = mostRolled;
+                mostRolled = rolledNumbers[i];
+            }
+            else if (rolledNumbers[i] > secondMostRolled) {
+                secondMostRolled = rolledNumbers[i];
             }
         }
 
-        ThreeOfAKind(temp);
-        FourOfAKind(temp);
+        ThreeOfAKind(mostRolled);
+        FourOfAKind(mostRolled);
+        FullHouse(mostRolled, secondMostRolled);
 
         return odds;
     }
@@ -181,8 +173,39 @@ public final class ProbabilityEngine {
         }
     }
 
-    public static void FullHouse() {
-
+    public static void FullHouse(int mostRolled, int secondMostRolled) {
+        switch (mostRolled) {
+            case 1:
+                double rollAll = ExactlyN(3, 3) * ExactlyN(2, 2);
+                double rollFour = ExactlyN(2, 2) * ExactlyN(2, 2);
+                double rollThree = ExactlyN(2, 2) * ExactlyN(1, 1);
+                odds[8][0] = ExactlyN(2, 4) + ExactlyN(3, 4) + ExactlyN(4, 4);
+                break;
+            case 2:
+                if (secondMostRolled == 2) {
+                    odds[8][0] = ONE_SIXTH + ONE_SIXTH;
+                }
+                else {
+                    double roll3 = ExactlyN(2, 3) * ExactlyN(1, 3);
+                    double roll2 = ExactlyN(1, 2) * ExactlyN(1, 2);
+                    odds[8][0] = ExactlyN(1, 3) * ExactlyN(2, 3);
+                }
+                break;
+            case 3:
+                if (secondMostRolled == 2) {
+                    odds[8][0] = 100;
+                }
+                else {
+                    odds[8][0] = ONE_SIXTH;
+                }
+                break;
+            case 4:
+                odds[8][0] = ONE_SIXTH;
+                break;
+            case 5:
+                odds[8][0] = 100;
+                break;
+        }
     }
 
     public static void ShortStraight() {
